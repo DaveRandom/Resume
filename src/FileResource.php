@@ -42,6 +42,46 @@ final class FileResource implements Resource
     private $chunkSize = self::DEFAULT_CHUNK_SIZE;
 
     /**
+     * Open the local file handle if it's not open yet, and set the pointer to the supplied position
+     *
+     * @param int $position
+     */
+    private function openFile(int $position): void
+    {
+        if ($this->handle === null && !$this->handle = \fopen($this->localPath, 'r')) {
+            throw new SendFileFailureException("Failed to open '{$this->localPath}' for reading");
+        }
+
+        if (\fseek($this->handle, $position, \SEEK_SET) !== 0) {
+            throw new SendFileFailureException('fseek() operation failed');
+        }
+    }
+
+    /**
+     * Send a chunk of data to the client
+     *
+     * @param OutputWriter $outputWriter
+     * @param int $length
+     * @return int
+     */
+    private function sendDataChunk(OutputWriter $outputWriter, int $length): int
+    {
+        $read = $length > $this->chunkSize
+            ? $this->chunkSize
+            : $length;
+
+        $data = \fread($this->handle, $read);
+
+        if ($data === false) {
+            throw new SendFileFailureException('fread() operation failed');
+        }
+
+        $outputWriter->sendData($data);
+
+        return \strlen($data);
+    }
+
+    /**
      * @param string $path Path of file on local file system
      * @param string $mimeType MIME type of file contents
      * @param int $chunkSize Chunk size for local file system reads when sending a partial file
@@ -75,50 +115,26 @@ final class FileResource implements Resource
     }
 
     /**
-     * Open the local file handle if it's not open yet, and set the pointer to the supplied position
-     *
-     * @param int $position
-     */
-    private function openFile(int $position): void
-    {
-        if ($this->handle === null && !$this->handle = \fopen($this->localPath, 'r')) {
-            throw new SendFileFailureException("Failed to open '{$this->localPath}' for reading");
-        }
-
-        if (\fseek($this->handle, $position, \SEEK_SET) !== 0) {
-            throw new SendFileFailureException('fseek() operation failed');
-        }
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function sendData(OutputWriter $outputWriter, Range $range = null, string $unit = null): void
     {
-        $this->openFile($range->getStart());
-
         if (\strtolower($unit ?? 'bytes') !== 'bytes') {
             throw new UnsatisfiableRangeException('Unit not handled by this resource: ' . $unit);
         }
 
-        $length = $range !== null
-            ? $range->getLength()
-            : $this->fileSize;
+        $start = 0;
+        $length = $this->fileSize;
+
+        if ($range !== null) {
+            $start = $range->getStart();
+            $length = $range->getLength();
+        }
+
+        $this->openFile($start);
 
         while ($length > 0) {
-            $read = $length > $this->chunkSize
-                ? $this->chunkSize
-                : $length;
-
-            $data = \fread($this->handle, $read);
-
-            if ($data === false) {
-                throw new SendFileFailureException('fread() operation failed');
-            }
-
-            $outputWriter->sendData($data);
-
-            $length -= \strlen($data);
+            $length -= $this->sendDataChunk($outputWriter, $length);
         }
     }
 
