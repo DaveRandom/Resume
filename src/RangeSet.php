@@ -6,6 +6,22 @@ final class RangeSet
 {
     public const DEFAULT_MAX_RANGES = 10;
 
+    private const HEADER_PARSE_EXPR = /** @lang regex */ '/
+      ^
+      \s*                 # tolerate lead white-space
+      (?<unit> [^\s=]+ )  # unit is everything up to first = or white-space
+      (?: \s*=\s* | \s+ ) # separator is = or white-space
+      (?<ranges> .+ )     # remainder is range spec
+    /x';
+
+    private const RANGE_PARSE_EXPR = /** @lang regex */ '/
+      ^
+      (?<start> [0-9]* ) # start is a decimal number
+      \s*-\s*            # separator is a dash
+      (?<end> [0-9]* )   # end is a decimal number
+      $
+    /x';
+
     /**
      * The unit for ranges in the set
      *
@@ -21,6 +37,33 @@ final class RangeSet
     private $ranges = [];
 
     /**
+     * Parse an array of range specifiers into an array of Range objects
+     *
+     * @param string[] $ranges
+     * @return Range[]
+     */
+    private static function parseRanges(array $ranges): array
+    {
+        $result = [];
+
+        foreach ($ranges as $i => $range) {
+            if (!\preg_match(self::RANGE_PARSE_EXPR, \trim($range), $match)) {
+                throw new InvalidRangeHeaderException("Invalid range format at position {$i}: Parse failure");
+            }
+
+            if ($match['start'] === '' && $match['end'] === '') {
+                throw new InvalidRangeHeaderException("Invalid range format at position {$i}: Start and end empty");
+            }
+
+            $result[] = $match['start'] === ''
+                ? new Range(((int)$match['end']) * -1)
+                : new Range((int)$match['start'], $match['end'] !== '' ? (int)$match['end'] : null);
+        }
+
+        return $result;
+    }
+
+    /**
      * Create a new instance from a Range header string
      *
      * @param string|null $header
@@ -29,54 +72,22 @@ final class RangeSet
      */
     public static function createFromHeader(?string $header, int $maxRanges = self::DEFAULT_MAX_RANGES): ?self
     {
-        static $headerParseExpr = /** @lang regex */ '/
-          ^
-          \s*                 # tolerate lead white-space
-          (?<unit> [^\s=]+ )  # unit is everything up to first = or white-space
-          (?: \s*=\s* | \s+ ) # separator is = or white-space
-          (?<ranges> .+ )     # remainder is range spec
-        /x';
-
-        static $rangeParseExpr = /** @lang regex */ '/
-          ^
-          (?<start> [0-9]* ) # start is a decimal number
-          \s*-\s*            # separator is a dash
-          (?<end> [0-9]* )   # end is a decimal number
-          $
-        /x';
-
         if ($header === null) {
             return null;
         }
 
-        if (!\preg_match($headerParseExpr, $header, $match)) {
+        if (!\preg_match(self::HEADER_PARSE_EXPR, $header, $match)) {
             throw new InvalidRangeHeaderException('Invalid header: Parse failure');
         }
 
         $unit = $match['unit'];
-        $rangeSpec = \explode(',', $match['ranges']);
+        $ranges = \explode(',', $match['ranges']);
 
-        if (\count($rangeSpec) > $maxRanges) {
+        if (\count($ranges) > $maxRanges) {
             throw new InvalidRangeHeaderException("Invalid header: Too many ranges");
         }
 
-        $ranges = [];
-
-        foreach (\explode(',', $match['ranges']) as $i => $range) {
-            if (!\preg_match($rangeParseExpr, \trim($range), $match)) {
-                throw new InvalidRangeHeaderException("Invalid range format at position {$i}: Parse failure");
-            }
-
-            if ($match['start'] === '' && $match['end'] === '') {
-                throw new InvalidRangeHeaderException("Invalid range format at position {$i}: Start and end empty");
-            }
-
-            $ranges[] = $match['start'] === ''
-                ? new Range(((int)$match['end']) * -1)
-                : new Range((int)$match['start'], $match['end'] !== '' ? (int)$match['end'] : null);
-        }
-
-        return new self($unit, $ranges);
+        return new self($unit, self::parseRanges($ranges));
     }
 
     /**
