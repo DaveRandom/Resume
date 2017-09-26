@@ -52,15 +52,15 @@ final class FileResource implements Resource
         $this->mimeType = $mimeType ?? 'application/octet-stream';
 
         // Make sure the file exists and is a file, otherwise we are wasting our time
-        $localPath = \realpath($path);
+        $this->localPath = \realpath($path);
 
-        if ($localPath === false || !\is_file($localPath)) {
+        if ($this->localPath === false || !\is_file($this->localPath)) {
             throw new NonExistentFileException("Local path '{$path}' does not exist or is not a file");
         }
 
         // This shouldn't ever fail but just in case
-        if (false === $this->fileSize = \filesize($localPath)) {
-            throw new UnreadableFileException("Failed to retrieve size of file '{$localPath}'");
+        if (false === $this->fileSize = \filesize($this->localPath)) {
+            throw new UnreadableFileException("Failed to retrieve size of file '{$this->localPath}'");
         }
     }
 
