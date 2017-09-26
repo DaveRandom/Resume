@@ -111,10 +111,14 @@ final class RangeSet
         $ranges = [];
 
         foreach ($this->ranges as $range) {
-            $range = $range->normalize($size);
+            try {
+                $range = $range->normalize($size);
 
-            if ($range->getStart() < $size) {
-                $ranges[] = $range;
+                if ($range->getStart() < $size) {
+                    $ranges[] = $range;
+                }
+            } catch (UnsatisfiableRangeException $e) {
+                // ignore, other ranges in the set may be satisfiable
             }
         }
 
