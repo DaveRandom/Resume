@@ -1,0 +1,25 @@
+{
+    "name": "daverandom/resume",
+    "description": "Tiny library to facilitate resumable downloads",
+    "minimum-stability": "dev",
+    "license": "mit",
+    "authors": [
+        {
+            "name": "Chris Wright",
+            "email": "me@daverandom.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "DaveRandom\\Resume\\": "src/" },
+        "files": ["src/functions.php"]
+    },
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload-dev": {
+        "psr-4": {"DaveRandom\\Resume\\Tests\\": "tests/"}
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
+    }
+}
