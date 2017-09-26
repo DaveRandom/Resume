@@ -64,6 +64,61 @@ final class RangeSet
     }
 
     /**
+     * Get a set of normalized ranges applied to a resource size
+     *
+     * @param int $size
+     * @return Range[]
+     */
+    private function normalizeRangesForSize(int $size): array
+    {
+        $result = [];
+
+        foreach ($this->ranges as $range) {
+            try {
+                $range = $range->normalize($size);
+
+                if ($range->getStart() < $size) {
+                    $result[] = $range;
+                }
+            } catch (UnsatisfiableRangeException $e) {
+                // ignore, other ranges in the set may be satisfiable
+            }
+        }
+
+        if (empty($result)) {
+            throw new UnsatisfiableRangeException('No specified ranges are satisfiable by a resource of the specified size');
+        }
+
+        return $result;
+    }
+
+    /**
+     * Combine overlapping ranges in the supplied array and return the result
+     *
+     * @param Range[] $ranges
+     * @return Range[]
+     */
+    private function combineOverlappingRanges(array $ranges)
+    {
+        \usort($ranges, static function(Range $a, Range $b) {
+            return $a->getStart() <=> $b->getStart();
+        });
+
+        for ($i = 0, $l = \count($ranges) - 1; $i < $l; $i++) {
+            if (!$ranges[$i]->overlaps($ranges[$i + 1])) {
+                continue;
+            }
+
+            $ranges[$i] = $ranges[$i]->combine($ranges[$i + 1]);
+            unset($ranges[$i + 1]);
+
+            $i++;
+        }
+
+        return $ranges;
+    }
+
+    /**
      * Create a new instance from a Range header string
      *
      * @param string|null $header
@@ -111,49 +166,22 @@ final class RangeSet
     }
 
     /**
-     * Get a set of normalized ranges applied to a resource size
+     * Get a set of normalized ranges applied to a resource size, reduced to the minimum set of ranges
      *
      * @param int $size
      * @return Range[]
      */
     public function getRangesForSize(int $size): array
     {
-        /** @var Range[] $ranges */
-        $ranges = [];
-
-        foreach ($this->ranges as $range) {
-            try {
-                $range = $range->normalize($size);
-
-                if ($range->getStart() < $size) {
-                    $ranges[] = $range;
-                }
-            } catch (UnsatisfiableRangeException $e) {
-                // ignore, other ranges in the set may be satisfiable
-            }
-        }
-
-        if (empty($ranges)) {
-            throw new UnsatisfiableRangeException('No specified ranges are satisfiable by a resource of the specified size');
-        }
+        $ranges = $this->normalizeRangesForSize($size);
 
         $previousCount = null;
         $count = \count($ranges);
 
         while ($count > 1 && $count !== $previousCount) {
-            \usort($ranges, static function(Range $a, Range $b) {
-                return $a->getStart() <=> $b->getStart();
-            });
-
             $previousCount = $count;
 
-            for ($i = 0; $i < $count - 1; $i++) {
-                if ($ranges[$i]->overlaps($ranges[$i + 1])) {
-                    $ranges[$i] = $ranges[$i]->combine($ranges[$i + 1]);
-                    unset($ranges[$i + 1]);
-                    break;
-                }
-            }
+            $ranges = $this->combineOverlappingRanges($ranges);
 
             $count = \count($ranges);
         }
