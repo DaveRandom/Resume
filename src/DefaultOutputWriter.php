@@ -7,7 +7,7 @@ final class DefaultOutputWriter implements OutputWriter
     /**
      * {@inheritdoc}
      */
-    function setResponseCode(int $code): void
+    public function setResponseCode(int $code): void
     {
         \header("HTTP/1.1 {$code} " . self::RESPONSE_MESSAGES[$code]);
     }
