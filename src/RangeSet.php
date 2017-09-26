@@ -29,25 +29,21 @@ final class RangeSet
      */
     public static function createFromHeader(?string $header, int $maxRanges = self::DEFAULT_MAX_RANGES): ?self
     {
-        static $headerParseExpr = /** @lang regex */ '
-          /
-            ^
-            \s*                 # tolerate lead white-space
-            (?<unit> [^\s=]+ )  # unit is everything up to first = or white-space
-            (?: \s*=\s* | \s+ ) # separator is = or white-space
-            (?<ranges> .+ )     # remainder is range spec
-          /x
-        ';
+        static $headerParseExpr = /** @lang regex */ '/
+          ^
+          \s*                 # tolerate lead white-space
+          (?<unit> [^\s=]+ )  # unit is everything up to first = or white-space
+          (?: \s*=\s* | \s+ ) # separator is = or white-space
+          (?<ranges> .+ )     # remainder is range spec
+        /x';
 
-        static $rangeParseExpr = /** @lang regex */ '
-          /
-            ^
-            (?<start> [0-9]* ) # start is a decimal number
-            \s*-\s*            # separator is a dash
-            (?<end> [0-9]* )   # end is a decimal number
-            $
-          /x
-        ';
+        static $rangeParseExpr = /** @lang regex */ '/
+          ^
+          (?<start> [0-9]* ) # start is a decimal number
+          \s*-\s*            # separator is a dash
+          (?<end> [0-9]* )   # end is a decimal number
+          $
+        /x';
 
         if ($header === null) {
             return null;
