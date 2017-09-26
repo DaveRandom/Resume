@@ -6,6 +6,7 @@ final class DefaultOutputWriter implements OutputWriter
 {
     /**
      * {@inheritdoc}
+     * @codeCoverageIgnore
      */
     public function setResponseCode(int $code): void
     {
@@ -14,6 +15,7 @@ final class DefaultOutputWriter implements OutputWriter
 
     /**
      * {@inheritdoc}
+     * @codeCoverageIgnore
      */
     public function sendHeader(string $name, string $value): void
     {
