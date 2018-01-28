@@ -47,7 +47,7 @@ final class FileResource implements Resource
      *
      * @param int $position
      */
-    private function openFile(int $position): void
+    private function openFile(int $position)
     {
         if ($this->handle === null && !$this->handle = \fopen($this->localPath, 'r')) {
             throw new SendFileFailureException("Failed to open '{$this->localPath}' for reading");
@@ -118,7 +118,7 @@ final class FileResource implements Resource
     /**
      * {@inheritdoc}
      */
-    public function sendData(OutputWriter $outputWriter, Range $range = null, string $unit = null): void
+    public function sendData(OutputWriter $outputWriter, Range $range = null, string $unit = null)
     {
         if (\strtolower($unit ?? 'bytes') !== 'bytes') {
             throw new UnsatisfiableRangeException('Unit not handled by this resource: ' . $unit);
@@ -180,7 +180,7 @@ final class FileResource implements Resource
      *
      * @param int $chunkSize
      */
-    public function setChunkSize(int $chunkSize): void
+    public function setChunkSize(int $chunkSize)
     {
         $this->chunkSize = $chunkSize;
     }

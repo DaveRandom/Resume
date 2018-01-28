@@ -14,7 +14,7 @@ interface OutputWriter
      *
      * @param int $code
      */
-    function setResponseCode(int $code): void;
+    function setResponseCode(int $code);
 
     /**
      * Send a response header to the client
@@ -22,12 +22,12 @@ interface OutputWriter
      * @param string $name
      * @param string $value
      */
-    function sendHeader(string $name, string $value): void;
+    function sendHeader(string $name, string $value);
 
     /**
      * Send a data block to the client
      *
      * @param string $data
      */
-    function sendData(string $data): void;
+    function sendData(string $data);
 }

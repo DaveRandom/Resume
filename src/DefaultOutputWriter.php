@@ -8,7 +8,7 @@ final class DefaultOutputWriter implements OutputWriter
      * {@inheritdoc}
      * @codeCoverageIgnore
      */
-    public function setResponseCode(int $code): void
+    public function setResponseCode(int $code)
     {
         \header("HTTP/1.1 {$code} " . self::RESPONSE_MESSAGES[$code]);
     }
@@ -17,7 +17,7 @@ final class DefaultOutputWriter implements OutputWriter
      * {@inheritdoc}
      * @codeCoverageIgnore
      */
-    public function sendHeader(string $name, string $value): void
+    public function sendHeader(string $name, string $value)
     {
         \header("{$name}: {$value}");
     }
@@ -25,7 +25,7 @@ final class DefaultOutputWriter implements OutputWriter
     /**
      * {@inheritdoc}
      */
-    public function sendData(string $data): void
+    public function sendData(string $data)
     {
         echo $data;
     }

@@ -11,7 +11,7 @@ interface Resource
      * @param string|null $unit
      * @param Range|null $range
      */
-    function sendData(OutputWriter $outputWriter, Range $range = null, string $unit = null): void;
+    function sendData(OutputWriter $outputWriter, Range $range = null, string $unit = null);
 
     /**
      * Get the total length of the resource

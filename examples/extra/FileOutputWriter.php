@@ -43,7 +43,7 @@ class FileOutputWriter implements \DaveRandom\Resume\OutputWriter
      *
      * @param int $code
      */
-    function setResponseCode(int $code): void
+    function setResponseCode(int $code)
     {
         $this->responseCode = $code;
     }
@@ -54,7 +54,7 @@ class FileOutputWriter implements \DaveRandom\Resume\OutputWriter
      * @param string $name
      * @param string $value
      */
-    function sendHeader(string $name, string $value): void
+    function sendHeader(string $name, string $value)
     {
         $this->headers[] = "{$name}: {$value}";
     }
@@ -64,7 +64,7 @@ class FileOutputWriter implements \DaveRandom\Resume\OutputWriter
      *
      * @param string $data
      */
-    function sendData(string $data): void
+    function sendData(string $data)
     {
         if (!$this->headerWritten) {
             $this->writeHeader();

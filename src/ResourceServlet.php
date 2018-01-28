@@ -36,7 +36,7 @@ final class ResourceServlet
      *
      * @param OutputWriter $outputWriter
      */
-    private function sendHeaders(OutputWriter $outputWriter): void
+    private function sendHeaders(OutputWriter $outputWriter)
     {
         $headers = $this->generateDefaultHeaders();
 
@@ -73,7 +73,7 @@ final class ResourceServlet
      * @param RangeSet|null $rangeSet Range header on which the transmission will be based
      * @param OutputWriter|null $outputWriter Output writer via which resource will be sent
      */
-    public function sendResource(RangeSet $rangeSet = null, OutputWriter $outputWriter = null): void
+    public function sendResource(RangeSet $rangeSet = null, OutputWriter $outputWriter = null)
     {
         $outputWriter = $outputWriter ?? new DefaultOutputWriter();
 
