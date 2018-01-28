@@ -7,6 +7,7 @@ namespace DaveRandom\Resume;
  *
  * @param string $name Name of the header
  * @return string|null Returns null when the header was not sent or cannot be retrieved
+ * @codeCoverageIgnore
  */
 function get_request_header(string $name): ?string
 {
@@ -18,9 +19,11 @@ function get_request_header(string $name): ?string
     }
 
     // Various other SAPIs
-    foreach (\apache_request_headers() as $header_name => $value) {
-        if (\strtoupper($header_name) === $name) {
-            return \trim($value);
+    if (\function_exists('apache_request_headers')) {
+        foreach (\apache_request_headers() as $headerName => $value) {
+            if (\strtoupper($headerName) === $name) {
+                return \trim($value);
+            }
         }
     }
 
