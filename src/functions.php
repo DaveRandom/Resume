@@ -9,7 +9,7 @@ namespace DaveRandom\Resume;
  * @return string|null Returns null when the header was not sent or cannot be retrieved
  * @codeCoverageIgnore
  */
-function get_request_header(string $name): ?string
+function get_request_header(string $name)
 {
     $name = \strtoupper($name);
 

@@ -35,7 +35,10 @@ final class Range
         return $this->start;
     }
 
-    public function getEnd(): ?int
+    /**
+     * @return int|null
+     */
+    public function getEnd()
     {
         return $this->end;
     }

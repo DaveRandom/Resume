@@ -4,7 +4,8 @@ namespace DaveRandom\Resume;
 
 final class FileResource implements Resource
 {
-    public const DEFAULT_CHUNK_SIZE = 8192;
+    /** @internal */
+    const DEFAULT_CHUNK_SIZE = 8192;
 
     /**
      * Full canonical path of file on local file system

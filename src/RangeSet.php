@@ -4,9 +4,10 @@ namespace DaveRandom\Resume;
 
 final class RangeSet
 {
-    public const DEFAULT_MAX_RANGES = 10;
+    const DEFAULT_MAX_RANGES = 10;
 
-    private const HEADER_PARSE_EXPR = /** @lang regex */ '/
+    /** @internal */
+    const HEADER_PARSE_EXPR = /** @lang regex */ '/
       ^
       \s*                 # tolerate lead white-space
       (?<unit> [^\s=]+ )  # unit is everything up to first = or white-space
@@ -14,7 +15,8 @@ final class RangeSet
       (?<ranges> .+ )     # remainder is range spec
     /x';
 
-    private const RANGE_PARSE_EXPR = /** @lang regex */ '/
+    /** @internal */
+    const RANGE_PARSE_EXPR = /** @lang regex */ '/
       ^
       (?<start> [0-9]* ) # start is a decimal number
       \s*-\s*            # separator is a dash
@@ -125,7 +127,7 @@ final class RangeSet
      * @param int $maxRanges
      * @return self|null
      */
-    public static function createFromHeader(?string $header, int $maxRanges = self::DEFAULT_MAX_RANGES): ?self
+    public static function createFromHeader(string $header = null, int $maxRanges = self::DEFAULT_MAX_RANGES)
     {
         if ($header === null) {
             return null;
