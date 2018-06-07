@@ -12,9 +12,9 @@ final class ResourceServlet
     /**
      * Generate the default response headers for this resource
      *
-     * @return string[]
+     * @return HeaderSet
      */
-    private function generateDefaultHeaders(): array
+    private function generateDefaultHeaders(): HeaderSet
     {
         $ranges = $this->resource instanceof RangeUnitProvider
             ? \implode(',', $this->resource->getRangeUnits())
@@ -24,24 +24,23 @@ final class ResourceServlet
             $ranges = 'none';
         }
 
-        return [
+        return new HeaderSet([
             'content-type' => $this->resource->getMimeType(),
             'content-length' => (string)$this->resource->getLength(),
             'accept-ranges' => $ranges,
-        ];
+        ]);
     }
 
     /**
      * Send the headers that are included regardless of whether a range was requested
      *
      * @param OutputWriter $outputWriter
+     * @param HeaderSet $headers
      */
-    private function sendHeaders(OutputWriter $outputWriter)
+    private function sendHeaders(OutputWriter $outputWriter, HeaderSet $headers)
     {
-        $headers = $this->generateDefaultHeaders();
-
         foreach ($this->resource->getAdditionalHeaders() as $name => $value) {
-            $headers[\strtolower($name)] = $value;
+            $headers->setHeader($name, $value);
         }
 
         foreach ($headers as $name => $value) {
@@ -76,11 +75,12 @@ final class ResourceServlet
     public function sendResource(RangeSet $rangeSet = null, OutputWriter $outputWriter = null)
     {
         $outputWriter = $outputWriter ?? new DefaultOutputWriter();
+        $headers = $this->generateDefaultHeaders();
 
         if ($rangeSet === null) {
             // No ranges requested, just send the whole file
             $outputWriter->setResponseCode(200);
-            $this->sendHeaders($outputWriter);
+            $this->sendHeaders($outputWriter, $headers);
             $this->resource->sendData($outputWriter);
 
             return;
@@ -91,7 +91,7 @@ final class ResourceServlet
         $ranges = $rangeSet->getRangesForSize($size);
 
         $outputWriter->setResponseCode(206);
-        $this->sendHeaders($outputWriter);
+        $this->sendHeaders($outputWriter, $headers);
         $outputWriter->sendHeader('Content-Range', $this->getContentRangeHeader($rangeSet->getUnit(), $ranges, $size));
 
         foreach ($ranges as $range) {
