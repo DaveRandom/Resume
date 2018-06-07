@@ -56,7 +56,7 @@ final class ResourceServlet
      * @param int $size
      * @return string
      */
-    public function getContentRangeHeader(string $unit, array $ranges, int $size): string
+    private function getContentRangeHeader(string $unit, array $ranges, int $size): string
     {
         return $unit . ' ' . \implode(',', $ranges) . '/' . $size;
     }
