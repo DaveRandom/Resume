@@ -25,9 +25,8 @@ final class ResourceServlet
         }
 
         return new HeaderSet([
-            'content-type' => $this->resource->getMimeType(),
-            'content-length' => (string)$this->resource->getLength(),
-            'accept-ranges' => $ranges,
+            'Content-Type' => $this->resource->getMimeType(),
+            'Accept-Ranges' => $ranges,
         ]);
     }
 
@@ -73,6 +72,8 @@ final class ResourceServlet
 
         $this->sendHeaders($outputWriter, $headers);
 
+        $headers->setHeader('Content-Length', (string)$this->resource->getLength());
+
         $this->resource->sendData($outputWriter);
     }
 
@@ -85,12 +86,20 @@ final class ResourceServlet
      */
     private function sendResourceRanges(OutputWriter $outputWriter, HeaderSet $headers, RangeSet $rangeSet)
     {
-        $size = $this->resource->getLength();
-        $ranges = $rangeSet->getRangesForSize($size);
+        $totalResourceSize = $this->resource->getLength();
+        $ranges = $rangeSet->getRangesForSize($totalResourceSize);
+
+        $responseBodySize = \array_reduce($ranges, function(int $size, Range $range) {
+            return $size + $range->getLength();
+        }, 0);
 
         $outputWriter->setResponseCode(206);
         $this->sendHeaders($outputWriter, $headers);
-        $outputWriter->sendHeader('Content-Range', $this->getContentRangeHeader($rangeSet->getUnit(), $ranges, $size));
+
+        $contentRangeHeader = $this->getContentRangeHeader($rangeSet->getUnit(), $ranges, $totalResourceSize);
+
+        $outputWriter->sendHeader('Content-Range', $contentRangeHeader);
+        $outputWriter->sendHeader('Content-Length', (string)$responseBodySize);
 
         foreach ($ranges as $range) {
             $this->resource->sendData($outputWriter, $range);
