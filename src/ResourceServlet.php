@@ -61,13 +61,49 @@ final class ResourceServlet
         return $unit . ' ' . \implode(',', $ranges) . '/' . $size;
     }
 
+    /**
+     * Send the complete resource to the client
+     *
+     * @param OutputWriter $outputWriter
+     * @param HeaderSet $headers
+     */
+    private function sendCompleteResource(OutputWriter $outputWriter, HeaderSet $headers)
+    {
+        $outputWriter->setResponseCode(200);
+
+        $this->sendHeaders($outputWriter, $headers);
+
+        $this->resource->sendData($outputWriter);
+    }
+
+    /**
+     * Send the requested ranges to the client
+     *
+     * @param OutputWriter $outputWriter
+     * @param HeaderSet $headers
+     * @param RangeSet $rangeSet
+     */
+    private function sendResourceRanges(OutputWriter $outputWriter, HeaderSet $headers, RangeSet $rangeSet)
+    {
+        $size = $this->resource->getLength();
+        $ranges = $rangeSet->getRangesForSize($size);
+
+        $outputWriter->setResponseCode(206);
+        $this->sendHeaders($outputWriter, $headers);
+        $outputWriter->sendHeader('Content-Range', $this->getContentRangeHeader($rangeSet->getUnit(), $ranges, $size));
+
+        foreach ($ranges as $range) {
+            $this->resource->sendData($outputWriter, $range);
+        }
+    }
+
     public function __construct(Resource $resource)
     {
         $this->resource = $resource;
     }
 
     /**
-     * Send data from a file based on the current Range header
+     * Send data from a file based on the Range header described by the supplied RangeSet
      *
      * @param RangeSet|null $rangeSet Range header on which the transmission will be based
      * @param OutputWriter|null $outputWriter Output writer via which resource will be sent
@@ -78,24 +114,9 @@ final class ResourceServlet
         $headers = $this->generateDefaultHeaders();
 
         if ($rangeSet === null) {
-            // No ranges requested, just send the whole file
-            $outputWriter->setResponseCode(200);
-            $this->sendHeaders($outputWriter, $headers);
-            $this->resource->sendData($outputWriter);
-
-            return;
-        }
-
-        // Send the requested ranges
-        $size = $this->resource->getLength();
-        $ranges = $rangeSet->getRangesForSize($size);
-
-        $outputWriter->setResponseCode(206);
-        $this->sendHeaders($outputWriter, $headers);
-        $outputWriter->sendHeader('Content-Range', $this->getContentRangeHeader($rangeSet->getUnit(), $ranges, $size));
-
-        foreach ($ranges as $range) {
-            $this->resource->sendData($outputWriter, $range);
+            $this->sendCompleteResource($outputWriter, $headers);
+        } else {
+            $this->sendResourceRanges($outputWriter, $headers, $rangeSet);
         }
     }
 }
