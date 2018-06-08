@@ -2,9 +2,7 @@
 
 namespace DaveRandom\Resume\Tests;
 
-use DaveRandom\Resume\InvalidRangeHeaderException;
 use DaveRandom\Resume\RangeSet;
-use DaveRandom\Resume\UnsatisfiableRangeException;
 use PHPUnit\Framework\TestCase;
 
 final class RangeSetTest extends TestCase
@@ -79,42 +77,47 @@ final class RangeSetTest extends TestCase
         $this->assertSame(2, \count($set->getRangesForSize(1000)));
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     */
     public function testRangesNumberLimit()
     {
         $set = RangeSet::createFromHeader('bytes=0-1,1-2,2-3,3-4,4-5', 5);
 
         $this->assertInstanceOf(RangeSet::class, $set);
 
-        $this->expectException(InvalidRangeHeaderException::class);
-
         RangeSet::createFromHeader('bytes=0-1,1-2,2-3,3-4,4-5', 4);
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     */
     public function testInvalidHeaderSyntaxThrows()
     {
-        $this->expectException(InvalidRangeHeaderException::class);
-
         RangeSet::createFromHeader('randomgarbage');
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     */
     public function testInvalidRangeSyntaxThrows()
     {
-        $this->expectException(InvalidRangeHeaderException::class);
-
         RangeSet::createFromHeader('bytes=randomgarbage');
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     */
     public function testEmptyRangeThrows()
     {
-        $this->expectException(InvalidRangeHeaderException::class);
-
         RangeSet::createFromHeader('bytes=-');
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     */
     public function testNoMatchingRangeThrows()
     {
-        $this->expectException(UnsatisfiableRangeException::class);
-
         RangeSet::createFromHeader('bytes=10-100')->getRangesForSize(5);
     }
 }

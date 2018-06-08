@@ -2,16 +2,15 @@
 
 namespace DaveRandom\Resume\Tests;
 
-use DaveRandom\Resume\IncompatibleRangesException;
-use DaveRandom\Resume\InvalidRangeException;
-use DaveRandom\Resume\LengthNotAvailableException;
 use DaveRandom\Resume\Range;
-use DaveRandom\Resume\UnsatisfiableRangeException;
 use PHPUnit\Framework\TestCase;
 
 final class RangeTest extends TestCase
 {
-    public function testRangeFromBeginningToEnd()
+    /**
+     * @expectedException \DaveRandom\Resume\LengthNotAvailableException
+     */
+    public function testGetLengthOfRangeFromBeginningToEndFails()
     {
         $range = new Range(0);
 
@@ -19,7 +18,6 @@ final class RangeTest extends TestCase
 
         $this->assertNull($range->getEnd());
 
-        $this->expectException(LengthNotAvailableException::class);
         $range->getLength();
     }
 
@@ -34,7 +32,10 @@ final class RangeTest extends TestCase
         $this->assertSame(100, $range->getLength());
     }
 
-    public function testRangeFromOffsetToEnd()
+    /**
+     * @expectedException \DaveRandom\Resume\LengthNotAvailableException
+     */
+    public function testGetLengthOfRangeFromOffsetToEndFails()
     {
         $range = new Range(10);
 
@@ -42,7 +43,6 @@ final class RangeTest extends TestCase
 
         $this->assertNull($range->getEnd());
 
-        $this->expectException(LengthNotAvailableException::class);
         $range->getLength();
     }
 
@@ -57,7 +57,10 @@ final class RangeTest extends TestCase
         $this->assertSame(90, $range->getLength());
     }
 
-    public function testRangeFromNegativeStart()
+    /**
+     * @expectedException \DaveRandom\Resume\LengthNotAvailableException
+     */
+    public function testGetLengthOfRangeWithNegativeStartFails()
     {
         $range = new Range(-10);
 
@@ -65,7 +68,6 @@ final class RangeTest extends TestCase
 
         $this->assertNull($range->getEnd());
 
-        $this->expectException(LengthNotAvailableException::class);
         $range->getLength();
     }
 
@@ -116,38 +118,43 @@ final class RangeTest extends TestCase
         $this->assertNotSame($range, $range->normalize(100));
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\UnsatisfiableRangeException
+     */
     public function testNormalizingNormalizedRangeAfterEndOfSizeFails()
     {
-        $this->expectException(UnsatisfiableRangeException::class);
-
         (new Range(10, 100))->normalize(5);
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\UnsatisfiableRangeException
+     */
     public function testNormalizingNonNormalizedRangeAfterEndOfSizeFails()
     {
-        $this->expectException(UnsatisfiableRangeException::class);
-
         (new Range(10))->normalize(5);
     }
 
-    public function testNegativeEndInvalid()
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeException
+     */
+    public function testNegativeEndFails()
     {
-        $this->expectException(InvalidRangeException::class);
-
         new Range(0, -1);
     }
 
-    public function testEndSmallerThanStartInvalid()
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeException
+     */
+    public function testEndSmallerThanStartFails()
     {
-        $this->expectException(InvalidRangeException::class);
-
         new Range(10, 9);
     }
 
-    public function testEndWithNegativeStartInvalid()
+    /**
+     * @expectedException \DaveRandom\Resume\InvalidRangeException
+     */
+    public function testEndWithNegativeStartFails()
     {
-        $this->expectException(InvalidRangeException::class);
-
         new Range(-1, 10);
     }
 
@@ -166,33 +173,28 @@ final class RangeTest extends TestCase
         $this->assertSame('-1', (string)new Range(-1));
     }
 
-    public function testNonNormalizedIncomparableWithNormalized()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCompareNonNormalizedWithNormalizedFails()
     {
-        $normal = new Range(1, 10);
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $normal->overlaps($notNormal);
+        (new Range(1, 10))->overlaps(new Range(1));
     }
 
-    public function testNormalizedIncomparableWithNonNormalized()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCompareNormalizedWithNonNormalizedFails()
     {
-        $normal = new Range(1, 10);
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $notNormal->overlaps($normal);
+        (new Range(1, 10))->overlaps(new Range(1));
     }
 
-    public function testNonNormalizedIncomparableWithNonNormalized()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCompareNonNormalizedWithNonNormalizedFails()
     {
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $notNormal->overlaps($notNormal);
+        (new Range(1))->overlaps(new Range(2));
     }
 
     public function testOverlappingRanges()
@@ -205,33 +207,28 @@ final class RangeTest extends TestCase
         $this->assertFalse((new Range(1, 10))->overlaps(new Range(15, 25)));
     }
 
-    public function testNonNormalizedCombineWithNormalizedFails()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCombineNonNormalizedWithNormalizedFails()
     {
-        $normal = new Range(1, 10);
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $normal->combine($notNormal);
+        (new Range(1, 10))->combine(new Range(1));
     }
 
-    public function testNormalizedCombineWithNonNormalizedFails()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCombineNormalizedWithNonNormalizedFails()
     {
-        $normal = new Range(1, 10);
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $notNormal->combine($normal);
+        (new Range(1))->combine(new Range(1, 10));
     }
 
-    public function testNonNormalizedCombineWithNonNormalizedFails()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCombineNonNormalizedWithNonNormalizedFails()
     {
-        $notNormal = new Range(1);
-
-        $this->expectException(IncompatibleRangesException::class);
-
-        $notNormal->combine($notNormal);
+        (new Range(1))->combine(new Range(2));
     }
 
     public function testCombiningOverlappingRanges()
@@ -245,10 +242,11 @@ final class RangeTest extends TestCase
         $this->assertSame(15, $range->getLength());
     }
 
-    public function testCombiningNonOverlappingRanges()
+    /**
+     * @expectedException \DaveRandom\Resume\IncompatibleRangesException
+     */
+    public function testCombiningNonOverlappingRangesFails()
     {
-        $this->expectException(IncompatibleRangesException::class);
-
         (new Range(1, 10))->combine(new Range(15, 25));
     }
 }

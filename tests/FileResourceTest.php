@@ -3,7 +3,6 @@
 namespace DaveRandom\Resume\Tests;
 
 use DaveRandom\Resume\FileResource;
-use DaveRandom\Resume\NonExistentFileException;
 use PHPUnit\Framework\TestCase;
 
 final class FileResourceTest extends TestCase
@@ -17,19 +16,19 @@ final class FileResourceTest extends TestCase
         $this->assertSame(\filesize($path), $file->getLength());
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\NonExistentFileException
+     */
     public function testNonExistentPathFails()
     {
-        $path = __DIR__ . '/does_not_exist';
-
-        $this->expectException(NonExistentFileException::class);
-        new FileResource($path);
+        new FileResource(__DIR__ . '/does_not_exist');
     }
 
+    /**
+     * @expectedException \DaveRandom\Resume\NonExistentFileException
+     */
     public function testDirectoryFails()
     {
-        $path = __DIR__;
-
-        $this->expectException(NonExistentFileException::class);
-        new FileResource($path);
+        new FileResource(__DIR__);
     }
 }
