@@ -114,7 +114,7 @@ final class RangeSetTest extends TestCase
     }
 
     /**
-     * @expectedException \DaveRandom\Resume\InvalidRangeHeaderException
+     * @expectedException \DaveRandom\Resume\UnsatisfiableRangeException
      */
     public function testNoMatchingRangeThrows()
     {
