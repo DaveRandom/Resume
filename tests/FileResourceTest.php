@@ -9,7 +9,7 @@ final class FileResourceTest extends TestCase
 {
     public function testFileSizeAsLength()
     {
-        $path = __DIR__ . '/../fixtures/10KB_data.txt';
+        $path = __DIR__ . '/fixtures/10KB_data.txt';
 
         $file = new FileResource($path);
 
